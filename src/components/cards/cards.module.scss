@@ -1,0 +1,164 @@
+@use '/src/styles/vars';
+
+.CardsMain{
+    width: 100vw;
+
+    .topPanel {
+        width: 100vw;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #160141;
+        // transition: all 0.3s ease;
+    
+        &.sticky {
+            position: fixed;
+            top: 18vw;
+            left: 0;
+            right: 0;
+            background-color: #160141;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 500;
+            // transform: translateY(20vw);
+
+            .Tabs button {
+                padding: 2vw;
+                font-size: 0.9em;
+            }
+        }
+    }
+
+    .coinsDisplay, .miningPerSecondDisplay {
+        margin-right: 20px;
+    }
+
+    .Tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        // box-shadow: 0vw 0vw 4vw #020024;
+        background-color: #090973;
+        padding: 1vw 0;
+
+        position: fixed;
+        left: 0;
+        bottom: 25vw;
+        z-index: 9;
+
+        button {
+            padding: 2vw;
+            cursor: pointer;
+            font-size: 3.5vw;
+            text-align: center;
+            margin: 1vw;
+            padding: 3vw 3vw;
+            border: 0.3vw solid;
+            border-radius: 1vw;
+            background: vars.$colorBlue1;
+            background: linear-gradient(0deg, rgb(2, 0, 36) 0%, rgb(9, 9, 121) 95%, rgb(16, 2, 51) 100%);
+            color: gold;
+
+            @include vars.click-outline-none;
+
+            &.activeTab {
+                background: gold;
+                color: #000;
+            }
+        }
+    }
+
+    .emptyCard{
+        width: 100vw;
+        height: 30vw;
+    }
+}
+
+.Tab{
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #090979;
+
+    .loading{
+        font-size: 4vw;
+        padding: 5vw 1vw;
+    }
+}
+
+.Card{
+    width: 90vw;
+    margin-top: 4vw;
+    padding: 3vw;
+    border: 0.3vw solid;
+    border-radius: 2vw;
+    background: vars.$colorBlue1;
+
+    .name{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        .title{
+            width: 58vw;
+            font-size: 4vw;
+        }
+    
+        .buy{
+            width: 14vw;
+            height: 14vw;
+            background: gold;
+            border-radius: 7vw;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    .card_lvl{
+        // width: 18vw;
+        font-size: 4vw;
+        // display: flex;
+        // align-items: center;
+        // justify-content: flex-end;
+        // flex-direction: row;
+    }
+
+    .card_lvl_small{
+        color: vars.$colorWhite;
+        font-size: 3.4vw;
+        // margin-right: 1vw;
+    }
+
+    .bonus{
+        font-size: 3vw;
+        margin-bottom: 2vw;
+
+        .title{
+            font-size: 4vw
+        }
+        
+        li{
+            font-size: 3.5vw;
+        }
+    }
+
+    .info{
+        font-size: 3vw;
+
+        .comment{
+            font-size: 3.5vw;
+        }
+
+        .price{
+            font-size: 3.5vw;
+            text-align: center;
+            margin: 2vw 1vw;
+            padding: 3vw 1vw;
+            border: 0.3vw solid;
+            border-radius: 20vw;
+        }
+    }
+}

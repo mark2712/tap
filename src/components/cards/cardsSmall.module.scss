@@ -1,0 +1,101 @@
+@use '/src/styles/vars';
+
+.Card{
+    width: 94vw;
+    height: 18vw;
+    margin-top: 4vw;
+    border: 0.3vw solid;
+    border-radius: 2vw;
+    background: vars.$colorBlue1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    position: relative;
+
+    .img{
+        width: 18vw;
+        height: 18vw;
+        background: #000;
+    }
+
+    .name{
+        width: 54vw;
+        padding: 2vw;
+        
+        .title{
+            width: 100%;
+            font-size: 4vw;
+            font-weight: 600;
+        }
+    }
+
+    .buy{
+        width: 18vw;
+        height: 18vw;
+        background: gold;
+        // border-radius: 7vw;
+        color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        border-left: 0.3vw solid vars.$colorGold;
+        box-sizing: border-box;
+
+        .buyLvl, .buyPrice{
+            width: 18vw;
+            // height: 9vw;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        // .buyLvl{
+        //     background: #090979;
+        //     color: #fff;
+        // }
+
+        .buyPriceNo{
+            background-color: vars.$colorBlue1;
+            color: vars.$colorGold;
+        }
+
+        .buySep{
+            border-top: 0.3vw solid #000000;
+            outline: 0.3vw solid gold;
+            width: 100%;
+        }
+    }
+
+    .card_lvl{
+        font-size: 4vw;
+    }
+
+    .card_lvl_small{
+        color: vars.$colorWhite;
+        font-size: 3.4vw;
+    }
+
+    .bonus{
+        font-size: 3vw;
+
+        .title{
+            font-size: 4vw
+        }
+        
+        li{
+            font-size: 3.5vw;
+        }
+    }
+
+    .bottomShadow{
+        position: absolute;
+        bottom: 0;
+        left: 18vw;
+        width: 58vw;
+        height: 3vw;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #160141 90%, #160141 100%);;
+    }
+}

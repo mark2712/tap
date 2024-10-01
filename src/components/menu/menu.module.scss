@@ -1,0 +1,119 @@
+@use '/src/styles/vars';
+
+.MenuTopMarging{
+    // padding-top: 20.24vw;
+    padding-top: 18vw;
+}
+
+
+.MenuTopBottom{
+    width: 100vw;
+    padding: 0vw 0;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    position: fixed;
+    left: 0;
+    background: vars.$colorBlue1;
+    z-index: 100;
+    @include vars.click-outline-none;
+
+    li{
+        width: 25vw;
+        height: 20vw;
+        font-size: 3.1vw;
+        list-style-type: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        .imgIcon{
+            width: 11vw;
+            height: 11vw;
+            background: #a97d3f;
+            border-radius: 99px;
+        }
+    }
+    
+    .inDev{
+        color: #ff0000;
+        box-sizing: content-box;
+        // border: 1px dotted #ff0000;
+    }
+}
+
+.MenuTop{
+    top: 0;
+    // border-bottom: 1px solid #6a6b34;
+    background: linear-gradient(180deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 95%, rgba(16,2,51,1) 100%);
+
+    .activeLi{
+        background: linear-gradient(180deg, rgba(2, 0, 36, 1) 0%, #100233 95%, rgba(16, 2, 51, 1) 100%);
+        border-radius: 10vw 10vw 0 0;
+    }
+
+}
+.MenuBottom{
+    bottom: 5vw;
+    border-bottom: 1px solid;
+    // border-top: 1px solid #6a6b34;
+    background: linear-gradient(0deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 95%, rgba(16,2,51,1) 100%);
+    // padding-bottom: 4vw;
+
+    .activeLi{
+        // background: linear-gradient(0deg, rgba(2,0,36,1) 0%, #07065E 50%, #080766 70%, #160141 100%);
+        // background: linear-gradient(0deg, rgba(2, 0, 36, 1) 0%, #100233 95%, #160141 100%);
+        // background: linear-gradient(0deg, rgba(2, 0, 36, 1) 0%, #100233 50%, vars.$colorBlue1 100%);
+        background: linear-gradient(180deg, vars.$colorBlue1 0%, rgba(9,9,121,1) 95%, rgba(16,2,51,1) 100%);
+        // border-radius: 0 0 10vw 10vw;
+    }
+}
+
+.BottomLine{
+    position: fixed;
+    bottom: 0;
+    height: 5vw;
+    width: 100%;
+    background: vars.$colorBlue1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-size: 3vw;
+    overflow: hidden;
+    border-top: 1px solid;
+}
+
+.BottomPadding{
+    width: 100%;
+    height: 26vw;
+}
+
+
+
+.TopStats{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+
+    .item{
+        width: 20vw;
+        height: 18vw;
+        font-size: 3.5vw;
+        list-style-type: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        b{
+            font-size: 5vw;
+            font-weight: 700;
+        }
+    }
+}

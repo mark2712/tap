@@ -1,0 +1,124 @@
+@use '/src/styles/vars';
+
+.TapalkaMainContainer{
+    position: relative;
+    background: radial-gradient(circle, rgba(2, 0, 36, 1) 0%, rgba(32, 0, 171, 1) 33%, rgba(16, 2, 51, 1) 60%);
+    border-bottom: 1px solid;
+}
+
+.Tapalka{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 142vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.TapalkaMainCoin{
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    // background-color: gold;
+    // background:url('coin1.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    text-align: center;
+    font-size: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #890000;
+    transition: transform 0.2s ease-in-out;
+    position: absolute;
+    @include vars.click-outline-none;
+}
+
+.TapalkaMainCoin:active {
+    transform: scale(0.97); /* Уменьшение размера при нажатии */
+}
+
+.TapalkaMainCoinContainer{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 30vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-shadow: 0 0 5vw #00073b;
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+    font-size: 20vw;
+
+    h1{
+        margin: 0;
+        margin-top: 5vw;
+        margin-bottom: 1vw;
+    }
+}
+
+.TapalkaMainCoinContainerBottom{
+    top: auto;
+    bottom: 0;
+    padding-bottom: 5vw;
+}
+
+.Tapalka_amount_coins{
+    font-size: 12vw;
+    text-shadow: 0 0 5vw #00073b;
+    font-weight: 700;
+}
+
+.mining_per_second_text{
+    font-size: 4.3vw;
+    font-weight: 300;
+}
+
+.tapEffect {
+    position: fixed;
+    font-size: 5vw;
+    animation: flyUp 1s forwards;
+    pointer-events: none; /* Чтобы не блокировать другие действия */
+}
+
+@keyframes flyUp {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-32vw) scale(2); /* Лететь вверх */
+        opacity: 0;
+    }
+}
+
+
+.TapalkaContent{
+    background-color: vars.$colorBlue1;
+    position: relative;
+}
+
+.Tapalka_price_on_tap{
+    position: relative;
+    font-size: 4vw;
+    background-color: vars.$colorBlue1;
+    padding: 4vw;
+}
+
+
+@media screen and (max-width: 800px) {
+    .TapalkaMainCoin{
+        width: 70vw;
+        height: 70vw;
+    }
+}

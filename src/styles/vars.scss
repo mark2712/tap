@@ -1,0 +1,20 @@
+$colorBlue1: #160141;
+$colorBlue2: #090979;
+$colorGold: gold;
+$colorWhite: #ffffff;
+
+
+@mixin gradientBlue1($angle) {
+    background: linear-gradient(#{$angle}, rgb(2, 0, 36) 0%, rgb(9, 9, 121) 95%, rgb(16, 2, 51) 100%);
+}
+
+
+@mixin click-outline-none {
+    user-select: none;             /* Отключает выделение текста */
+    -webkit-tap-highlight-color: transparent; /* Убирает подсветку при нажатии на iOS и Android */
+    touch-action: manipulation;    /* Отключает поведение по умолчанию при касании, например, прокрутку */
+    -webkit-user-select: none;     /* Отключает выделение текста в браузерах WebKit */
+    -ms-user-select: none;         /* Отключает выделение текста в IE/Edge */
+    -webkit-touch-callout: none;   /* Отключает вызов контекстного меню при долгом нажатии */
+    outline: none;                 /* Убирает обводку при нажатии */
+}
