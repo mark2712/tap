@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { toJS } from 'mobx'
 import mainStore from "@/store/MainStore";
-import cardsStore from "@/store/CardsStore";
+import tabsCardsStore from "@/store/cards/TabsCardsStore";
 import coinsStore from "@/store/CoinsStore";
 import referalStore from '@/store/ReferalStore';
 import navigationStore from '@/store/Navigation';
@@ -32,7 +32,7 @@ const MenuBottom = observer(() => {
                 <LiItem navigationName='CardsMain' onClickHandler={
                     (navigationName) => {
                         navigationStore.setActiveSection(navigationName);
-                        cardsStore.getTab(1);
+                        // tabsCardsStore.getTab(1);
                     }
                 } text={'Доход'} />
                 {/* <LiItem inDev={true} text={'Мини игры'} /> */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import navigationStore from "@/store/Navigation";
-import cardsStore, {tabsNavigation} from "@/store/CardsStore";
+import tabsNavigation from "@/store/cards/TabsNavigation";
 import { toJS } from 'mobx'
 import css from './cards.module.scss';
 import Tab from './Tab';

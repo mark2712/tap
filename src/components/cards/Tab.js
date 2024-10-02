@@ -1,13 +1,13 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import css from './cards.module.scss';
-import cardsStore from "@/store/CardsStore";
-import CardSmall from './CardSmall';
+import tabsCardsStore from "@/store/cards/TabsCardsStore";
+import Card from './card/Card';
 import { toJS } from 'mobx'
 
 
 const Tab = observer(({tabId}) => {
-    const tab = cardsStore.tabs[tabId];
+    const tab = tabsCardsStore.tabs[tabId];
     const cards = tab?.cards;
 
     return (
@@ -23,7 +23,7 @@ const Tab = observer(({tabId}) => {
                                     <>
                                         {
                                             Object.keys(cards).map((key) =>(
-                                                <CardSmall key={cards[key].id} tabId={tabId} cardData={cards[key]} />
+                                                <Card key={cards[key].id} tabId={tabId} cardData={cards[key]} />
                                             ))
                                         }
                                         <div className={css.emptyCard}></div>

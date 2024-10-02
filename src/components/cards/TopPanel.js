@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
-import cardsStore, {tabsNavigation} from "@/store/CardsStore";
+import tabsNavigation from "@/store/cards/TabsNavigation";
 import css from './cards.module.scss';
 import {scrollToTop} from "@/helpers/common";
 

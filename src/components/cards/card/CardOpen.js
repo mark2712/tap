@@ -1,20 +1,20 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 import mainStore from "@/store/MainStore";
-import cardsStore from "@/store/CardsStore";
+import tabsCardsStore from "@/store/cards/TabsCardsStore";
 import { toJS } from 'mobx'
 import { formatNumber, calculateFontSize, formatNumberExponent, formatNumberWithSuffix } from "@/helpers/formatNumber";
 import css from './cards.module.scss';
 
 
 const Card = observer(({tabId, cardData}) => {
-    const sendCard = cardsStore.sendCards['id'+cardData.id];
+    const sendCard = tabsCardsStore.sendCards['id'+cardData.id];
     const isPossibleBuy = cardData.isPossibleBuy.get();
     const isMaxLvl = cardData.users_cards && (cardData.max_lvl <= cardData.users_cards.card_lvl);
 
     const buyCardHandler = () => {
         if(!sendCard){
-            cardsStore.buyCard(tabId, cardData.id);
+            tabsCardsStore.buyCard(tabId, cardData.id);
         }
     };
 

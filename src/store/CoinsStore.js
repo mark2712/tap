@@ -14,9 +14,11 @@ class CoinsStore {
     miningTimer;
     lastUpdateTime = performance.now();
     fractionalPart;
+    currentTime = Math.floor(Date.now() / 1000); //костыль-оптимизация - позволяет вместо coins (могут обновляться очень быстро) использовать currentTime чтобы снизить количество обновлений
 
     constructor() {
         makeAutoObservable(this);
+        this.timerCurrentTime();
     }
 
     get tapPriceFinally() {
@@ -103,10 +105,9 @@ class CoinsStore {
         });
     }
 
-    
 
     // Устанавливаем новый таймер
-    setMiningTimer() {
+    setMiningTimer(time = 110) {
         const updateCoins = () => {
             const now = performance.now();
             const elapsedTime = (now - this.lastUpdateTime) / 1000;
@@ -131,7 +132,7 @@ class CoinsStore {
         };
 
         this.lastUpdateTime = performance.now();
-        this.miningTimer = setInterval(updateCoins, 110);
+        this.miningTimer = setInterval(updateCoins, time);
     }
 
     clearMiningTimer() {
@@ -139,6 +140,14 @@ class CoinsStore {
             clearInterval(this.miningTimer);
             this.miningTimer = null;
         }
+    }
+
+    timerCurrentTime(time = 1000) {
+        this.timer = setInterval(() => {
+            runInAction(() => {
+                this.currentTime = Math.floor(Date.now() / 1000);
+            });
+        }, time);
     }
 }
 

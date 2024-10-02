@@ -46,7 +46,7 @@ class MainStore {
     //загружаем данные о пользователе как только загружены данные с телеграм
     async firstUserDataLoad(){
         if(!this.userData.data){
-            await this.incCoins(this.authData, {}, 0);
+            await this.fetchUser();
         }
         if(!this.userData.data){
             messLogStore.setStatus('err', '', 'Ошибка загрузки. Обновите страницу', '');
@@ -83,8 +83,12 @@ class MainStore {
         return this.userData?.data || {};
     }
 
+    async fetchUser() {
+        return await this.incCoins(this.authData, {}, 0);
+    }
 
-    //единственная и неповторимая функция отправки тапов на сервер
+
+    //единственная и неповторимая функция отправки тапов на сервер, так же используется чтобы получить данные о пользователе
     async incCoins(data, tapsPacket, totalTaps) {
         this.isSubmitting = true;
         let apiUrl = TAP.apiUrl + 'inc_coins/';
