@@ -1,9 +1,12 @@
 import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } from 'mobx';
+import {IBattery, IBatteries} from '@/types/energon';
+import {Timer} from '@/types/timer';
 
 
 class EnergonStore {
-    batteriesData = [];
-    currentTime = Math.floor(Date.now() / 1000);
+    private batteriesData: IBatteries = [];
+    public currentTime: number = Math.floor(Date.now() / 1000);
+    private timer: Timer;
 
     constructor() {
         makeAutoObservable(this);
@@ -26,28 +29,28 @@ class EnergonStore {
 
     get activeBattery() {
         const availableBattery = this.batteries.find(
-            (battery) => (battery.time_energon_reload <= this.currentTime)
+            (battery: IBattery) => (battery.time_energon_reload <= this.currentTime)
         );
         return availableBattery || null;
     }
 
     // Вычисляем время оставшееся для перезарядки для каждой батареи
-    batteriesTimeRemaining() {
+    private batteriesTimeRemaining() {
         for(let key in this.batteriesData){
-            let battery = this.batteriesData[key];
+            let battery: IBattery = this.batteriesData[key];
             battery.timeRemaining = this.calcTimeRemaining(battery);
         }
     }
 
-    calcTimeRemaining(battery) {
+    private calcTimeRemaining(battery: IBattery) {
         return computed(() => {
-            let timeReload = battery.time_energon_reload - this.currentTime;
+            let timeReload: number = battery.time_energon_reload - this.currentTime;
             return timeReload;
         });
     }
 
     //восстановление непотраченой батарейки
-    calcActiveRemaining(battery) {
+    private calcActiveRemaining(battery: IBattery) {
         if(battery.remainingLock){
             return battery.energon; //пока клиент-сервер не синхронизированы восстановление невозможно (так как на сервере ещё ничего не потрачено и не чего восстанавливать)
         }
@@ -59,7 +62,7 @@ class EnergonStore {
         return newEnergon;
     }
 
-    startTimer() {
+    private startTimer() {
         if (!this.timer) {
             this.timer = setInterval(() => {
                 runInAction(() => {
@@ -73,20 +76,20 @@ class EnergonStore {
         }
     }
 
-    stopTimer() {
+    private stopTimer() {
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null;
         }
     }
 
-    reduce(taps) {
-        let currentTime = Math.floor(Date.now() / 1000); // Текущее время в секундах
-        let totalTaps = 0;
+    public reduce(taps: number): number {
+        let currentTime: number = Math.floor(Date.now() / 1000); // Текущее время в секундах
+        let totalTaps: number = 0;
         let batteries = this.batteries; // Получаем батарейки из хранилища
 
         runInAction(() => {
-            batteries.forEach((battery, index) => {
+            batteries.forEach((battery: IBattery, index) => {
                 if (battery.time_energon_reload > currentTime) {
                     return; // Пропускаем батарейки, которые на перезарядке
                 }
@@ -125,7 +128,7 @@ class EnergonStore {
             }
         });
 
-        return parseInt(totalTaps);
+        return parseInt(String(totalTaps));
     }
 }
 

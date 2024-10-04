@@ -2,60 +2,108 @@ import { makeAutoObservable, runInAction, autorun, reaction, toJS } from 'mobx';
 import TAP from '@/TAPconfig';
 import messLogStore from '@/store/MessLogStore';
 import telegramStore from '@/store/TelegramStore';
-import coinsStore from '@/store/CoinsStore';
+import coinsStore, {TapsPackets} from '@/store/CoinsStore';
 import energonStore from '@/store/EnergonStore';
 
+import {IUserData, IAuthData} from '@/types/user';
+import {Timer} from '@/types/timer';
 
-/*
-Отвечает за данные о пользователе, способе авторизации (на данный момент только телеграмм) и отправке пакотов с тапами.
-Изначально класс отвечал так же за работу с тапами, поэтому часть логики обработки тапов осталась тут
-*/
+
+/* Отвечает за данные о пользователе, способе авторизации (на данный момент только телеграмм) и отправке пакотов с тапами. */
 class MainStore {
-    userData = {};
-    authData = {};
-    telegramStore = telegramStore;
-    
-    fetchTimer;
-    lastFetchDate = Date.now();
-    isSubmitting = false; //предотвращает отправку данных на сервер если по какой то причине предыдущие данные всё ещё отправляются
+    public authData: IAuthData = {};
+    public majorСoefficient: bigint = 10000n;
+    public isSubmitting: boolean = false; //предотвращает отправку данных на сервер если по какой то причине предыдущие данные всё ещё отправляются
 
-    majorСoefficient = 10000n;
+    private userData: IUserData = {
+        id: 0,
+        lvl: 0,
+        amount_coins: 0n,
+        mining_per_second: 0n,
+        price_on_tap: 0n,
+        time_mining: 0,
+        time_last_mining: 0,
+        batteries: []
+    };
+
+    private fetchTimer?: Timer;
+    private lastFetchDate: number = Date.now();
 
     constructor() {
         makeAutoObservable(this, { authData: false });
+        this.authUser();
     }
 
-
-    get tapPrice(){
-        return parseInt(coinsStore.tapPrice/this.majorСoefficient);
+    set user(userData: IUserData){
+        if(userData){
+            this.userData = userData;
+            if(userData.batteries){
+                energonStore.batteries = userData.batteries;
+            }
+            coinsStore.clacNowCoins(userData);
+        }
     }
 
-    get tapPriceFinally(){
-        return parseInt(coinsStore.tapPriceFinally/this.majorСoefficient);
+    get user():IUserData{
+        return this.userData;
     }
 
-    get miningPerHour(){
+    get tapPrice(): bigint{
+        return coinsStore.tapPrice/this.majorСoefficient;
+    }
+
+    get tapPriceFinally(): bigint{
+        return coinsStore.tapPriceFinally/this.majorСoefficient;
+    }
+
+    get miningPerHour(): bigint{
         return coinsStore.mining_per_second*3600n/this.majorСoefficient;
     }
 
-    get coins(){
-        return parseInt(coinsStore.coins/this.majorСoefficient);
+    get coins(): bigint{
+        return coinsStore.coins/this.majorСoefficient;
     }
 
+    private async authUser(){
+        let authData: IAuthData = {};
+
+        //загрузить данные с телеграм
+        if(typeof window !== 'undefined' ){
+            authData = await telegramStore.setTelegramData();
+        }
+        
+        runInAction(() => {
+            this.authData = authData;
+            this.firstUserDataLoad();
+            this.setFetchTimer(setInterval(this.fetchTaps.bind(this), 5000)); //bind на всякий случай
+        });
+    }
+
+    //каждые Х секунд будет отправлен пакет с тапами (если есть неотправленные тапы и нет незавершенных соединений)
+    private fetchTaps = () => {
+        runInAction(() => {
+            let packet: TapsPackets = coinsStore.formPacket(); // Формируем пакет
+            let totalTaps: number = Object.values(packet).reduce((sum, tapData) => sum + tapData.taps, 0); // Считаем количество тапов
+            //(если есть неотправленные тапы или прошло 240 сек) и предыдущая отправка завершена
+            if ((Object.keys(packet).length > 0 || this.lastFetchDate-Date.now() < 0) && !this.isSubmitting) {
+                this.incCoins(mainStore.authData, packet, totalTaps); // Отправляем пакет на сервер
+            }
+        });
+    }
 
     //загружаем данные о пользователе как только загружены данные с телеграм
-    async firstUserDataLoad(){
-        if(!this.userData.data){
+    public async firstUserDataLoad(): Promise<void> {
+        if(!this.userData.id){
             await this.fetchUser();
         }
-        if(!this.userData.data){
+        if(!this.userData.id){
             messLogStore.setStatus('err', '', 'Ошибка загрузки. Обновите страницу', '');
         }
         messLogStore.setFirstLoad();
     }
 
     //установака нового таймера
-    setFetchTimer(timer){
+    private setFetchTimer(timer: NodeJS.Timeout | any){
         runInAction(() => {
             if(this.fetchTimer){
                 clearInterval(this.fetchTimer);
@@ -64,43 +112,23 @@ class MainStore {
         });
     }
 
-    set user(userData){
-        if(userData){
-            if(userData.data || userData.id){
-                if(userData.id){
-                    userData = {data:userData};
-                }
-                if(userData.data.batteries){
-                    energonStore.batteries = userData.data.batteries;
-                }
-                this.userData = userData;
-                coinsStore.clacNowCoins(userData);
-            }
-        }
-    }
-
-    get user(){
-        return this.userData?.data || {};
-    }
-
-    async fetchUser() {
+    public async fetchUser() {
         return await this.incCoins(this.authData, {}, 0);
     }
 
-
     //единственная и неповторимая функция отправки тапов на сервер, так же используется чтобы получить данные о пользователе
-    async incCoins(data, tapsPacket, totalTaps) {
+    public async incCoins(authData: IAuthData, TapsPacket: TapsPackets, totalTaps: number) {
         this.isSubmitting = true;
         let apiUrl = TAP.apiUrl + 'inc_coins/';
-        let userData = await this.fetchData({ data, taps:totalTaps }, apiUrl);
+        let userData = await this.fetchData({ data:authData, taps:totalTaps }, apiUrl);
 
         runInAction(() => {
             if(userData && userData.success === true){
-                coinsStore.confirmPacket(tapsPacket); // Подтверждаем пакет, если отправка успешна
-                this.user = userData;
+                coinsStore.confirmPacket(TapsPacket); // Подтверждаем пакет, если отправка успешна
+                this.user = userData.data;
                 energonStore.batteries = userData.batteries;
             }else{
-                coinsStore.revertPacket(tapsPacket); // Восстанавливаем тапы в случае ошибки
+                coinsStore.revertPacket(TapsPacket); // Восстанавливаем тапы в случае ошибки
             }
             mainStore.lastFetchDate = Date.now()+240000;
             this.isSubmitting = false;
@@ -108,7 +136,7 @@ class MainStore {
     }
 
     //отправка чего угодно на сервер
-    async fetchData(data, apiUrl) {
+    public async fetchData(data: any, apiUrl: string): Promise<any> {
         try {
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -133,23 +161,6 @@ class MainStore {
 
 
 const mainStore = new MainStore();
-
-//загрузить данные с телеграм
-if(typeof window !== 'undefined' ){
-    mainStore.telegramStore.setTelegramData(mainStore);
-}
-
-//каждые Х секунд будет отправлен пакет с тапами (если есть неотправленные тапы и нет незавершенных соединений)
-async function fetchData(){
-    let packet = coinsStore.formPacket(); // Формируем пакет
-    let totalTaps = Object.values(packet).reduce((sum, tapData) => sum + tapData.taps, 0); // Считаем количество тапов
-    //(если есть неотправленные тапы или прошло 240 сек) и предыдущая отправка завершена
-    if ((Object.keys(packet).length > 0 || mainStore.lastFetchDate-Date.now() < 0) && !mainStore.isSubmitting) {
-        await mainStore.incCoins(mainStore.authData, packet, totalTaps); // Отправляем пакет на сервер
-    }
-}
-mainStore.setFetchTimer(setInterval(fetchData, 5000));
-
 export default mainStore;
 
 

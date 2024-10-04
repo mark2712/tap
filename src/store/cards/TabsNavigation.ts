@@ -2,10 +2,17 @@ import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } fr
 import coinsStore from "@/store/CoinsStore";
 import tabsCardsStore from "@/store/cards/TabsCardsStore";
 
+interface ITabData {
+    id: number,
+    name: string
+}
+
+type TabsData = ITabData[];
+
 
 class TabsNavigation {
-    nowTabId = 1;
-    tabsData = [
+    nowTabId: number = 1;
+    tabsData: TabsData = [
         {
             id:1,
             name:'Стартап',
@@ -44,25 +51,25 @@ class TabsNavigation {
         makeAutoObservable(this);
     }
 
-    set tabs(tabsData) {
+    set tabs(tabsData: TabsData) {
         this.tabsData = tabsData || [];
     }
 
-    get tabs() {
+    get tabs(): TabsData {
         if(coinsStore.mining_per_second < 100000000n){
             return [this.tabsData[0], this.tabsData[1], this.tabsData[2], this.tabsData[3]];
         }
         return this.tabsData;
     }
 
-    set nowTab(tabId) {
+    set nowTab(tabId: number) {
         this.nowTabId = tabId;
         tabsCardsStore?.getTab(tabId);
     }
 
-    get nowTab() {
+    get nowTab():ITabData {
         tabsCardsStore.getTab(this.nowTabId);
-        let nowTab = this.tabsData.find(tab => tab.id === this.nowTabId);
+        let nowTab: ITabData = this.tabsData.find(tab => tab.id === this.nowTabId) || this.tabsData[0];
         return nowTab;
     }
 }

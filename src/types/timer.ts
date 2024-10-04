@@ -1,0 +1,1 @@
+export type Timer = NodeJS.Timeout | any; 

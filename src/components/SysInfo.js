@@ -6,7 +6,7 @@ import mainStore from "@/store/MainStore";
 
 const SysInfo = observer(() => {
     const authData = mainStore.authData;
-    const userData = mainStore.userData;
+    const userData = mainStore.user;
 
     return (
         <>

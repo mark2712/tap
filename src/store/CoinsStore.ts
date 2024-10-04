@@ -1,20 +1,34 @@
 import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } from 'mobx';
 import mainStore from "@/store/MainStore";
 import energonStore from "@/store/EnergonStore";
+import {Timer} from '@/types/timer';
+import {UserData} from '@/types/user';
+
+
+export interface TapsPacket {
+    get: boolean;
+    taps: number;
+}
+
+export interface TapsPackets {
+    [key: number]: TapsPacket;
+}
 
 
 class CoinsStore {
-    taps = 0;
-    tapPrice = 0n;
-    tapsPacket = {}; // Объект для хранения тапов
-    coins = 0n;
-    mining_per_second = 0n;
-    time_mining = 0;
-    miningEndTime = null; // Время, когда заканчивается добыча (time_mining)
-    miningTimer;
-    lastUpdateTime = performance.now();
-    fractionalPart;
-    currentTime = Math.floor(Date.now() / 1000); //костыль-оптимизация - позволяет вместо coins (могут обновляться очень быстро) использовать currentTime чтобы снизить количество обновлений
+    public tapPrice: bigint = 0n;
+    public TapsPackets: TapsPackets = {}; // Объект для хранения тапов
+    public coins: bigint = 0n;
+    public mining_per_second: bigint = 0n;
+    public time_mining: number = 0;
+    public currentTime: number = Math.floor(Date.now() / 1000); //костыль-оптимизация - позволяет вместо coins (могут обновляться очень быстро) использовать currentTime чтобы снизить количество обновлений
+
+    private taps: number = 0;
+    private miningEndTime: number | null = null; // Время, когда заканчивается добыча (time_mining)
+    private miningTimer?: Timer;
+    private timer?: Timer;
+    private lastUpdateTime: number = performance.now();
+    private fractionalPart:number = 0;
 
     constructor() {
         makeAutoObservable(this);
@@ -32,7 +46,7 @@ class CoinsStore {
     }
 
     //используется в компоненте как событие тапа
-    async incTapsClient(tapCount) {
+    async incTapsClient(tapCount: number) {
         if (!mainStore.user) {
             return console.log('Данные не загружены');
         }
@@ -45,24 +59,24 @@ class CoinsStore {
     }
 
     //получить данные с сервера и вычислить текущее число монет как монеты с сервера + монеты в неотправленных тапах
-    clacNowCoins(userData){
-        if (!userData.data) {
+    clacNowCoins(userData:UserData){
+        if (!userData) {
             return console.log('Данные не загружены');
         }
         runInAction(() => {
-            this.tapPrice = BigInt(userData.data.price_on_tap);
-            this.coins = BigInt(userData.data.amount_coins) + this.tapPriceFinally * BigInt(Object.values(this.tapsPacket).reduce((sum, tapData) => sum + tapData.taps, 0));
-            this.mining_per_second = BigInt(userData.data.mining_per_second);
-            this.time_mining = userData.data.time_mining;
+            this.tapPrice = BigInt(userData.price_on_tap);
+            this.coins = BigInt(userData.amount_coins) + this.tapPriceFinally * BigInt(Object.values(this.TapsPackets).reduce((sum, tapData) => sum + tapData.taps, 0));
+            this.mining_per_second = BigInt(userData.mining_per_second);
+            this.time_mining = userData.time_mining;
             this.miningEndTime = Date.now() + Number(this.time_mining) * 1000; // Время окончания добычи
         });
     }
 
-    addTap(count) {
+    addTap(count: number) {
         const timestamp = Date.now(); // Получаем текущее время в миллисекундах
         runInAction(() => {
             this.taps += count; // Увеличиваем количество тапов на клиенте
-            this.tapsPacket[timestamp] = {
+            this.TapsPackets[timestamp] = {
                 get: false,
                 taps: count,
             };
@@ -71,13 +85,14 @@ class CoinsStore {
 
     //Формируем пакет с тапами
     formPacket() {
-        const packet = {};
+        const packet:TapsPackets = {};
 
         runInAction(() => {
-            for (const [timestamp, tapData] of Object.entries(this.tapsPacket)) {
+            for (const [key, tapData] of Object.entries(this.TapsPackets)) {
                 if (!tapData.get) {
+                    const timestamp = Number(key);
                     packet[timestamp] = { ...tapData };
-                    this.tapsPacket[timestamp].get = true; //ставим метку что тапы отправляются
+                    this.TapsPackets[timestamp].get = true; //ставим метку что тапы отправляются
                 }
             }
         });
@@ -86,20 +101,22 @@ class CoinsStore {
     }
 
     //удаляем успешно отправленные тапы
-    confirmPacket(packet) {
+    confirmPacket(packet: TapsPackets) {
         runInAction(() => {
-            for (const timestamp of Object.keys(packet)) {
-                delete this.tapsPacket[timestamp];
+            for (const key of Object.keys(packet)) {
+                const timestamp = Number(key);
+                delete this.TapsPackets[timestamp];
             }
         });
     }
 
     //Отменить отпраку тапов (на тех пакетах которые помечены как отправляющиеся снова ставим метку неотправленных)
-    revertPacket(packet) {
+    revertPacket(packet: TapsPackets) {
         runInAction(() => {
-            for (const timestamp of Object.keys(packet)) {
-                if (this.tapsPacket[timestamp]) {
-                    this.tapsPacket[timestamp].get = false;
+            for (const key of Object.keys(packet)) {
+                const timestamp = Number(key);
+                if (this.TapsPackets[timestamp]) {
+                    this.TapsPackets[timestamp].get = false;
                 }
             }
         });
@@ -135,19 +152,26 @@ class CoinsStore {
         this.miningTimer = setInterval(updateCoins, time);
     }
 
-    clearMiningTimer() {
-        if (this.miningTimer) {
-            clearInterval(this.miningTimer);
-            this.miningTimer = null;
-        }
-    }
-
     timerCurrentTime(time = 1000) {
         this.timer = setInterval(() => {
             runInAction(() => {
                 this.currentTime = Math.floor(Date.now() / 1000);
             });
         }, time);
+    }
+
+    clearMiningTimer() {
+        if (this.miningTimer) {
+            clearInterval(this.miningTimer);
+            this.miningTimer = null;
+        }
+    }
+    
+    clearCurrentTime() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
     }
 }
 

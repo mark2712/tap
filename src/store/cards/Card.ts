@@ -1,20 +1,31 @@
-import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } from 'mobx';
+import { makeAutoObservable, computed, IComputedValue, runInAction, autorun, reaction, toJS } from 'mobx';
 import mainStore from "@/store/MainStore";
 import coinsStore from "@/store/CoinsStore";
 
+import {ICard, IIsPossibleBuy} from "@/types/card";
 
-class Card {
+
+class Card implements ICard {
+    id = 0;
+    title = '';
+    comment = '';
+    img = '';
+    color = '';
     open_mining_per_second_users = 0n;
     mining_per_second = 0n;
     mining_per_tap = 0n;
     next_mining_per_tap = 0n;
     next_mining_per_second = 0n;
-    next_mining_per_tap = 0n;
     price = 0n;
     next_price = 0n;
     time_mining = 0;
+    open_lvl_users = 0;
+    coin_multiplier = 0;
+    energon = 0;
+    max_lvl = 0;
+    users_cards = null;
 
-    constructor(card) {
+    constructor(card: any) {
         makeAutoObservable(this);
         this.setCard(card);
     }
@@ -51,10 +62,8 @@ class Card {
         return this.time_mining/3600;
     }
 
-    setCard(card) {
+    setCard(card: any) {
         runInAction(() => {
-            let users_cards = card.users_cards;
-
             //не доверяем серверу и конвертируем все поля в нужные типы
             card = this.format_card_fields(card, [
                 ['coin_multiplier', Number],
@@ -73,6 +82,7 @@ class Card {
                 ['next_mining_per_tap', BigInt],
             ]);
 
+            let users_cards = card.users_cards;
             if(users_cards){
                 card.users_cards = this.format_card_fields(users_cards, [
                     ['card_lvl', Number],
@@ -83,15 +93,13 @@ class Card {
                     ['time_energon_reload', Number],
                 ]);
             }
-            card.isPossibleBuy = this.isPossibleBuy(card);
+            card.isPossibleBuy = this.isPossibleBuyComputed(card);
 
-            for(let key in card){
-                this[key] = card[key];
-            }
+            Object.assign(this, card);
         });
     }
 
-    format_card_fields(obj, fields){
+    format_card_fields(obj: any, fields: [string, Function][]){
         if(obj){
             for (let i = 0; i < fields.length; i++) {
                 const field_neme = fields[i][0];
@@ -105,7 +113,7 @@ class Card {
         return obj; 
     }
 
-    isPossibleBuy(card) {
+    isPossibleBuyComputed(card: any): IComputedValue<IIsPossibleBuy> {
         let coins = toJS(coinsStore.coins);
         let isOpen_card_lvl = !card.open_card_id || card.open_card__lvl >= card.cards__open_lvl_card;
         return computed(() => {
@@ -114,10 +122,11 @@ class Card {
             let mining_per_second = coinsStore.mining_per_second >= card.open_mining_per_second_users;
             let price = coins >= card.next_price;
             // console.log(card.id, isOpen_card_lvl, card_max_lvl, user_lvl, mining_per_second, price);
-            return {
+            const res: IIsPossibleBuy= {
                 buy:( isOpen_card_lvl && card_max_lvl && user_lvl && mining_per_second && price ),
                 isOpen_card_lvl, card_max_lvl, user_lvl, mining_per_second, price, currentTime:coinsStore.currentTime
             }
+            return res;
         });
     }
 }
