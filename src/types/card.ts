@@ -38,10 +38,22 @@ export interface ICard {
     coin_multiplier: number;
     energon: number;
     max_lvl: number;
-    open_card_id?: number;
-    open_card_title?: string;
-    cards__open_lvl_card?: number;
-    open_card__lvl?: number;
+
+    open_card_id: number | null;
+    open_card_title: string | null;
+    cards__open_lvl_card: number | null;
+    open_card__lvl: number | null;
+
     users_cards: IUsersCards | null;
+
     isPossibleBuy?: IComputedValue<IIsPossibleBuy>;
+
+    openMiningPerHourUsers: bigint;
+    miningPerHour: bigint;
+    nextMiningPerHour: bigint;
+    miningPerTap: bigint;
+    nextMiningPerTap: bigint;
+    cardPrice: bigint;
+    nextCardPrice: bigint;
+    timeMining: number;
 }

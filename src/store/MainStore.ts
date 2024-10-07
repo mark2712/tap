@@ -9,7 +9,8 @@ import {IUserData, IAuthData} from '@/types/user';
 import {Timer} from '@/types/timer';
 
 
-/* Отвечает за данные о пользователе, способе авторизации (на данный момент только телеграмм) и отправке пакотов с тапами. */
+/* Отвечает за данные о пользователе, способе авторизации (на данный момент только телеграмм) и отправке пакотов с тапами.
+тапы прибавляются в coinsStore, а тут отправка происходит пакетами каждые X секунд*/
 class MainStore {
     public authData: IAuthData = {};
     public majorСoefficient: bigint = 10000n;
@@ -30,7 +31,7 @@ class MainStore {
     private lastFetchDate: number = Date.now();
 
     constructor() {
-        makeAutoObservable(this, { authData: false });
+        makeAutoObservable(this, { authData: false }); //если authData данные с телеграмм то их нельзя мутировать (mobx proxy мутирует данные)
         this.authUser();
     }
 
@@ -86,7 +87,7 @@ class MainStore {
             let totalTaps: number = Object.values(packet).reduce((sum, tapData) => sum + tapData.taps, 0); // Считаем количество тапов
             //(если есть неотправленные тапы или прошло 240 сек) и предыдущая отправка завершена
             if ((Object.keys(packet).length > 0 || this.lastFetchDate-Date.now() < 0) && !this.isSubmitting) {
-                this.incCoins(mainStore.authData, packet, totalTaps); // Отправляем пакет на сервер
+                this.incCoins(packet, totalTaps); // Отправляем пакет на сервер
             }
         });
     }
@@ -113,14 +114,14 @@ class MainStore {
     }
 
     public async fetchUser() {
-        return await this.incCoins(this.authData, {}, 0);
+        return await this.incCoins({}, 0);
     }
 
-    //единственная и неповторимая функция отправки тапов на сервер, так же используется чтобы получить данные о пользователе
-    public async incCoins(authData: IAuthData, TapsPacket: TapsPackets, totalTaps: number) {
+    //функция отправки тапов на сервер, так же используется чтобы получить данные о пользователе
+    public async incCoins(TapsPacket: TapsPackets, totalTaps: number) {
         this.isSubmitting = true;
         let apiUrl = TAP.apiUrl + 'inc_coins/';
-        let userData = await this.fetchData({ data:authData, taps:totalTaps }, apiUrl);
+        let userData = await this.fetchData({ taps:totalTaps }, apiUrl);
 
         runInAction(() => {
             if(userData && userData.success === true){
@@ -135,8 +136,13 @@ class MainStore {
         });
     }
 
+    //отправка чего угодно на сервер с данными для авторизации
+    public async fetchData(data: any, apiUrl: string): Promise<any> { 
+        return await this.fetchAnyData({...data, data: this.authData}, apiUrl);
+    }
+
     //отправка чего угодно на сервер
-    public async fetchData(data: any, apiUrl: string): Promise<any> {
+    public async fetchAnyData(data: any, apiUrl: string): Promise<any> {
         try {
             const response = await fetch(apiUrl, {
                 method: 'POST',

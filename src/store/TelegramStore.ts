@@ -11,12 +11,9 @@ declare global {
 
 class TelegramStore {
     isDev = (!window.Telegram?.WebApp?.initDataUnsafe?.user?.id && typeof process !== 'undefined' && process?.env?.NODE_ENV == "development");
-    mainStore = {};
 
     constructor() {
-        makeAutoObservable(this,{
-            mainStore:false
-        });
+        makeAutoObservable(this);
     }
 
     async setTelegramData(): Promise<IAuthData> {

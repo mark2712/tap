@@ -13,8 +13,7 @@ class ReferalStore {
     }
 
     async getReferals() {
-        const data = {data: mainStore.authData};
-        let referals: any = await mainStore.fetchData(data, TAP.apiUrl + 'referal/get_referals/');
+        let referals: any = await mainStore.fetchData({}, TAP.apiUrl + 'referal/get_referals/');
         runInAction(() => {
             if (Array.isArray(referals)) {
                 this.referals = referals.map((referal: any) => ({

@@ -1,8 +1,7 @@
 import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } from 'mobx';
-import mainStore from "@/store/MainStore";
 import energonStore from "@/store/EnergonStore";
 import {Timer} from '@/types/timer';
-import {UserData} from '@/types/user';
+import {IUserData} from '@/types/user';
 
 
 export interface TapsPacket {
@@ -47,19 +46,15 @@ class CoinsStore {
 
     //используется в компоненте как событие тапа
     async incTapsClient(tapCount: number) {
-        if (!mainStore.user) {
-            return console.log('Данные не загружены');
-        }
-
         this.addTap(tapCount);
 
         runInAction(() => {
-            this.coins += BigInt(energonStore.reduce(tapCount)) * BigInt(mainStore.user.price_on_tap);
+            this.coins += BigInt(energonStore.reduce(tapCount)) * BigInt(this.tapPrice);
         });
     }
 
     //получить данные с сервера и вычислить текущее число монет как монеты с сервера + монеты в неотправленных тапах
-    clacNowCoins(userData:UserData){
+    clacNowCoins(userData: IUserData){
         if (!userData) {
             return console.log('Данные не загружены');
         }

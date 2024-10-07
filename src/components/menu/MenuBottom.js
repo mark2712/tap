@@ -24,9 +24,6 @@ const MenuBottom = observer(() => {
                 <LiItem navigationName='TapalkaMain' onClickHandler={
                     (navigationName) => {
                         navigationStore.setActiveSection(navigationName);
-                        // if(!mainStore.isSubmitting){
-                        //     mainStore.incCoins(mainStore.authData, {}, 0);
-                        // }
                     }
                 } text={'Майнинг'} />
                 <LiItem navigationName='CardsMain' onClickHandler={

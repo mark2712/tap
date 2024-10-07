@@ -28,19 +28,18 @@ class TabsCardsStore {
         makeAutoObservable(this);
     }
 
-    public async getTab(tab_id: number) {
+    public async getTab(tab_id: number): Promise<void> {
         if(!this.tabs[tab_id] || this.tabs[tab_id]?.update){
             this.getTabFetch(tab_id);
         }
     }
 
-    public async getTabFetch(tab_id: number) {
-        const data = {data:mainStore.authData, tab_id};
-        let tab = await mainStore.fetchData(data, TAP.apiUrl + 'get_cards/');
+    public async getTabFetch(tab_id: number): Promise<void> {
+        let tab = await mainStore.fetchData({tab_id}, TAP.apiUrl + 'get_cards/');
         this.setTab(tab);
     }
 
-    public async buyCard(tabId: number, cardId: number) {
+    public async buyCard(tabId: number, cardId: number): Promise<void> {
         runInAction(() => {
             // Добавляем карточку в пакет, разделённый по вкладкам
             if (!this.packetBuyCards[tabId]) {
@@ -60,7 +59,7 @@ class TabsCardsStore {
         });
     }
 
-    private setTab(tab: ITab) {
+    private setTab(tab: ITab): void {
         runInAction(() => {
             if (typeof tab === "object") {
                 this.tabs[tab.id] = tab;
@@ -72,26 +71,25 @@ class TabsCardsStore {
         });
     }
 
-    private async processBuyCards(tabId: number) {
-        runInAction(async () => {
-            // Проверяем, если уже идет покупка
-            if (this.buyCardsIsFetch) {
-                return;
-            }
+    private async processBuyCards(tabId: number): Promise<void> {
+        // Проверяем, если уже идет покупка
+        if (this.buyCardsIsFetch) {
+            return;
+        }
 
-            this.buyCardsIsFetch = true; // Помечаем, что запрос на сервер отправляется
+        this.buyCardsIsFetch = true; // Помечаем, что запрос на сервер отправляется
 
-            // Копируем пакет покупок для текущей вкладки и очищаем его
-            const packetToSend = { ...this.packetBuyCards[tabId] };
-            this.packetBuyCards[tabId] = {};
+        // Копируем пакет покупок для текущей вкладки и очищаем его
+        const packetToSend = { ...this.packetBuyCards[tabId] };
+        this.packetBuyCards[tabId] = {};
 
-            const data = {
-                data: mainStore.authData,
-                cards_ids: Object.values(packetToSend),
-                tab_id: tabId,
-            };
+        const data = {
+            cards_ids: Object.values(packetToSend),
+            tab_id: tabId,
+        };
 
-            let res = await mainStore.fetchData(data, TAP.apiUrl + 'buy_cards/');
+        let res = await mainStore.fetchData(data, TAP.apiUrl + 'buy_cards/');
+        runInAction(() => {
             if(res){
                 this.buyCardResult(res.cards);
                 if(res.data){
@@ -113,7 +111,7 @@ class TabsCardsStore {
         });
     }
 
-    private buyCardResult(tab: ITab) {
+    private buyCardResult(tab: ITab): void {
         runInAction(() => {
             let tabs = this.tabs;
             for(let key in tabs){

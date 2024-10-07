@@ -2,7 +2,7 @@ import { makeAutoObservable, computed, IComputedValue, runInAction, autorun, rea
 import mainStore from "@/store/MainStore";
 import coinsStore from "@/store/CoinsStore";
 
-import {ICard, IIsPossibleBuy} from "@/types/card";
+import {ICard, IUsersCards, IIsPossibleBuy} from "@/types/card";
 
 
 class Card implements ICard {
@@ -25,10 +25,16 @@ class Card implements ICard {
     max_lvl = 0;
     users_cards = null;
 
+    open_card_id = null;
+    open_card_title = null;
+    cards__open_lvl_card = null;
+    open_card__lvl = null;
+
     constructor(card: any) {
         makeAutoObservable(this);
         this.setCard(card);
     }
+    
 
     get openMiningPerHourUsers(){
         return this.open_mining_per_second_users * 3600n / mainStore.majorСoefficient;
@@ -62,55 +68,77 @@ class Card implements ICard {
         return this.time_mining/3600;
     }
 
-    setCard(card: any) {
+    private setCard(card: any): void {
         runInAction(() => {
             //не доверяем серверу и конвертируем все поля в нужные типы
-            card = this.format_card_fields(card, [
-                ['coin_multiplier', Number],
-                ['energon', Number],
-                ['max_lvl', Number],
-                ['open_card__lvl', Number],
-                ['cards__open_lvl_card', Number],
-                ['open_lvl_users', Number],
-                ['time_mining', Number],
-                ['open_mining_per_second_users', BigInt],
-                ['mining_per_second', BigInt],
-                ['mining_per_tap', BigInt],
-                ['price', BigInt],
-                ['next_price', BigInt],
-                ['next_mining_per_second', BigInt],
-                ['next_mining_per_tap', BigInt],
-            ]);
+            const formattedCard: ICard = this.formatCardFields(card);
+            const formattedUsersCards: IUsersCards | null = this.formatUserCards(card.users_cards);
 
-            let users_cards = card.users_cards;
-            if(users_cards){
-                card.users_cards = this.format_card_fields(users_cards, [
-                    ['card_lvl', Number],
-                    ['energon', Number],
-                    ['mining_per_second', BigInt],
-                    ['mining_per_tap', BigInt],
-                    ['time_mining', Number],
-                    ['time_energon_reload', Number],
-                ]);
-            }
-            card.isPossibleBuy = this.isPossibleBuyComputed(card);
+            const finalCard: ICard = {
+                ...formattedCard,
+                users_cards: formattedUsersCards,
+                isPossibleBuy: this.isPossibleBuyComputed(formattedCard),
+            };
 
-            Object.assign(this, card);
+            Object.assign(this, finalCard);
         });
     }
 
-    format_card_fields(obj: any, fields: [string, Function][]){
-        if(obj){
-            for (let i = 0; i < fields.length; i++) {
-                const field_neme = fields[i][0];
-                const func = fields[i][1];
-                if(obj[field_neme] && func){
-                    obj[field_neme] = func(obj[field_neme]);
-                }
-                
+    private formatCardFields(card: any): ICard {
+        const typeFormat = {
+            id: Number,
+            title: String,
+            comment: String,
+            img: String,
+            color: String,
+            open_mining_per_second_users: BigInt,
+            mining_per_second: BigInt,
+            mining_per_tap: BigInt,
+            next_mining_per_tap: BigInt,
+            next_mining_per_second: BigInt,
+            price: BigInt,
+            next_price: BigInt,
+            time_mining: Number,
+            open_lvl_users: Number,
+            coin_multiplier: Number,
+            energon: Number,
+            max_lvl: Number,
+            open_card_id: Number,
+            open_card_title: String,
+            cards__open_lvl_card: Number,
+            open_card__lvl: Number,
+        };
+
+        return this.formatFields(card, typeFormat);
+    }
+
+
+    private formatUserCards(users_cards: any): IUsersCards | null {
+        if (!users_cards) return null;
+
+        const typeFormat = {
+            id: Number,
+            card_lvl: Number,
+            energon: Number,
+            mining_per_second: BigInt,
+            mining_per_tap: BigInt,
+            time_mining: Number,
+            time_energon_reload: Number,
+        };
+
+        return this.formatFields(users_cards, typeFormat);
+    }
+
+    private formatFields(obj: any, typeFormat: any) {
+        const formatted: any = {};
+
+        for(let key in typeFormat){
+            if (obj[key] !== undefined && obj[key] !== null) {
+                formatted[key] = typeFormat[key](obj[key]);
             }
         }
-        return obj; 
+
+        return formatted;
     }
 
     isPossibleBuyComputed(card: any): IComputedValue<IIsPossibleBuy> {
