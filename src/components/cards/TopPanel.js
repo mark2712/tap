@@ -7,7 +7,7 @@ import {scrollToTop} from "@/helpers/common";
 
 
 const TopPanel = observer(({panelRef, isSticky}) => {
-    const activeTab  = tabsNavigation.nowTab;
+    const activeTab = tabsNavigation.nowTab;
 
     return (
         <div ref={panelRef} className={`${css.topPanel} ${isSticky ? css.sticky : ''}`} onClick={scrollToTop} >

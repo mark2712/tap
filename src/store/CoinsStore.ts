@@ -1,7 +1,7 @@
 import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } from 'mobx';
 import energonStore from "@/store/EnergonStore";
-import {Timer} from '@/types/timer';
-import {IUserData} from '@/types/user';
+import { Timer } from '@/types/timer';
+import { IUserData } from '@/types/user';
 
 
 export interface TapsPacket {
@@ -24,10 +24,10 @@ class CoinsStore {
 
     private taps: number = 0;
     private miningEndTime: number | null = null; // Время, когда заканчивается добыча (time_mining)
-    private miningTimer?: Timer;
-    private timer?: Timer;
+    private miningTimer?: Timer = null;
+    private timer?: Timer = null;;
     private lastUpdateTime: number = performance.now();
-    private fractionalPart:number = 0;
+    private fractionalPart: number = 0;
 
     constructor() {
         makeAutoObservable(this);
@@ -37,9 +37,9 @@ class CoinsStore {
     get tapPriceFinally() {
         let activeBattery = energonStore.activeBattery;
         let multiplier = activeBattery?.multiplier || 1;
-        if(multiplier){
+        if (multiplier) {
             return this.tapPrice * BigInt(multiplier);
-        }else{
+        } else {
             return this.tapPrice;
         }
     }
@@ -54,7 +54,7 @@ class CoinsStore {
     }
 
     //получить данные с сервера и вычислить текущее число монет как монеты с сервера + монеты в неотправленных тапах
-    clacNowCoins(userData: IUserData){
+    clacNowCoins(userData: IUserData) {
         if (!userData) {
             return console.log('Данные не загружены');
         }
@@ -80,7 +80,7 @@ class CoinsStore {
 
     //Формируем пакет с тапами
     formPacket() {
-        const packet:TapsPackets = {};
+        const packet: TapsPackets = {};
 
         runInAction(() => {
             for (const [key, tapData] of Object.entries(this.TapsPackets)) {
@@ -144,29 +144,22 @@ class CoinsStore {
         };
 
         this.lastUpdateTime = performance.now();
+
+        if (this.miningTimer) {
+            clearInterval(this.miningTimer);
+        }
         this.miningTimer = setInterval(updateCoins, time);
     }
 
     timerCurrentTime(time = 1000) {
+        if (this.timer) {
+            clearInterval(this.timer);
+        }
         this.timer = setInterval(() => {
             runInAction(() => {
                 this.currentTime = Math.floor(Date.now() / 1000);
             });
         }, time);
-    }
-
-    clearMiningTimer() {
-        if (this.miningTimer) {
-            clearInterval(this.miningTimer);
-            this.miningTimer = null;
-        }
-    }
-    
-    clearCurrentTime() {
-        if (this.timer) {
-            clearInterval(this.timer);
-            this.timer = null;
-        }
     }
 }
 

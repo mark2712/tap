@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { toJS } from 'mobx'
 import mainStore from "@/store/MainStore";
 import tabsCardsStore from "@/store/cards/TabsCardsStore";
+import tabsNavigation from "@/store/cards/TabsNavigation";
 import coinsStore from "@/store/CoinsStore";
 import referalStore from '@/store/ReferalStore';
 import navigationStore from '@/store/Navigation';
@@ -29,7 +30,9 @@ const MenuBottom = observer(() => {
                 <LiItem navigationName='CardsMain' onClickHandler={
                     (navigationName) => {
                         navigationStore.setActiveSection(navigationName);
-                        // tabsCardsStore.getTab(1);
+                        // if(!tabsNavigation.nowTabId){
+                        //     tabsNavigation.nowTab = 1;
+                        // }
                     }
                 } text={'Доход'} />
                 {/* <LiItem inDev={true} text={'Мини игры'} /> */}
@@ -40,7 +43,11 @@ const MenuBottom = observer(() => {
                         referalStore.getReferals();
                     }
                 } text={'Рефералы'} />
-                <LiItem inDev={true} text={'Настройки'}/>
+                <LiItem navigationName='Profile' onClickHandler={
+                    (navigationName) => {
+                        navigationStore.setActiveSection(navigationName);
+                    }
+                } text={'Настройки'}/>
             </ul>
             <div className={css.BottomLine}>{formatNumberWithSuffix(coins)} — {formatNumberWithSuffix(mining_per_second)} — {formatNumberWithSuffix(price_on_tap)}</div>
             <div className={css.BottomPadding}></div>

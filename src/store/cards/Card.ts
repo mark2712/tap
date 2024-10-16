@@ -1,8 +1,8 @@
-import { makeAutoObservable, computed, IComputedValue, runInAction, autorun, reaction, toJS } from 'mobx';
+import { makeAutoObservable, computed, IComputedValue, runInAction, autorun, reaction, toJS, keys } from 'mobx';
 import mainStore from "@/store/MainStore";
 import coinsStore from "@/store/CoinsStore";
 
-import {ICard, IUsersCards, IIsPossibleBuy} from "@/types/card";
+import { ICard, IUsersCards, IIsPossibleBuy } from "@/types/card";
 
 
 class Card implements ICard {
@@ -34,38 +34,38 @@ class Card implements ICard {
         makeAutoObservable(this);
         this.setCard(card);
     }
-    
 
-    get openMiningPerHourUsers(){
+
+    get openMiningPerHourUsers() {
         return this.open_mining_per_second_users * 3600n / mainStore.majorСoefficient;
     }
 
-    get miningPerHour(){
+    get miningPerHour() {
         return this.mining_per_second * 3600n / mainStore.majorСoefficient;
     }
 
-    get nextMiningPerHour(){
+    get nextMiningPerHour() {
         return this.next_mining_per_second * 3600n / mainStore.majorСoefficient;
     }
 
-    get miningPerTap(){
+    get miningPerTap() {
         return this.mining_per_tap / mainStore.majorСoefficient;
     }
 
-    get nextMiningPerTap(){
+    get nextMiningPerTap() {
         return this.next_mining_per_tap / mainStore.majorСoefficient;
     }
 
-    get cardPrice(){
+    get cardPrice() {
         return this.price * 3600n / mainStore.majorСoefficient;
     }
 
-    get nextCardPrice(){
+    get nextCardPrice() {
         return this.next_price * 3600n / mainStore.majorСoefficient;
     }
 
-    get timeMining(){
-        return this.time_mining/3600;
+    get timeMining() {
+        return this.time_mining / 3600;
     }
 
     private setCard(card: any): void {
@@ -84,8 +84,8 @@ class Card implements ICard {
         });
     }
 
-    private formatCardFields(card: any): ICard {
-        const typeFormat = {
+    private formatCardFields(card: { [key: string]: any }): ICard {
+        const typeFormat: { [key: string]: any } = {
             id: Number,
             title: String,
             comment: String,
@@ -113,10 +113,10 @@ class Card implements ICard {
     }
 
 
-    private formatUserCards(users_cards: any): IUsersCards | null {
+    private formatUserCards(users_cards: { [key: string]: any } | null): IUsersCards | null {
         if (!users_cards) return null;
 
-        const typeFormat = {
+        const typeFormat: { [key: string]: any } = {
             id: Number,
             card_lvl: Number,
             energon: Number,
@@ -129,10 +129,10 @@ class Card implements ICard {
         return this.formatFields(users_cards, typeFormat);
     }
 
-    private formatFields(obj: any, typeFormat: any) {
+    private formatFields(obj: { [key: string]: any }, typeFormat: { [key: string]: any }): any {
         const formatted: any = {};
 
-        for(let key in typeFormat){
+        for (let key in typeFormat) {
             if (obj[key] !== undefined && obj[key] !== null) {
                 formatted[key] = typeFormat[key](obj[key]);
             }
@@ -150,9 +150,9 @@ class Card implements ICard {
             let mining_per_second = coinsStore.mining_per_second >= card.open_mining_per_second_users;
             let price = coins >= card.next_price;
             // console.log(card.id, isOpen_card_lvl, card_max_lvl, user_lvl, mining_per_second, price);
-            const res: IIsPossibleBuy= {
-                buy:( isOpen_card_lvl && card_max_lvl && user_lvl && mining_per_second && price ),
-                isOpen_card_lvl, card_max_lvl, user_lvl, mining_per_second, price, currentTime:coinsStore.currentTime
+            const res: IIsPossibleBuy = {
+                buy: (isOpen_card_lvl && card_max_lvl && user_lvl && mining_per_second && price),
+                isOpen_card_lvl, card_max_lvl, user_lvl, mining_per_second, price, currentTime: coinsStore.currentTime
             }
             return res;
         });

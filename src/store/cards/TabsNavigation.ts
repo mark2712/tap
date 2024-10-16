@@ -2,48 +2,46 @@ import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } fr
 import coinsStore from "@/store/CoinsStore";
 import tabsCardsStore from "@/store/cards/TabsCardsStore";
 
-interface ITabData {
+export interface ITabData {
     id: number,
     name: string
 }
 
-type TabsData = ITabData[];
-
 
 class TabsNavigation {
-    nowTabId: number = 1;
-    tabsData: TabsData = [
+    nowTabId: number = 0;
+    tabsData: ITabData[] = [
         {
-            id:1,
-            name:'Стартап',
+            id: 1,
+            name: 'Стартап',
         },
         {
-            id:2,
-            name:'Бизнес',
+            id: 2,
+            name: 'Бизнес',
         },
         {
-            id:3,
-            name:'Корпорация',
+            id: 3,
+            name: 'Корпорация',
         },
         {
-            id:4,
-            name:'Технологии',
+            id: 4,
+            name: 'Технологии',
         },
         {
-            id:5,
-            name:'IT',
+            id: 5,
+            name: 'IT',
         },
         {
-            id:6,
-            name:'Империя',
+            id: 6,
+            name: 'Империя',
         },
         {
-            id:7,
-            name:'Кибер',
+            id: 7,
+            name: 'Кибер',
         },
         {
-            id:8,
-            name:'Мета',
+            id: 8,
+            name: 'Мета',
         },
     ]
 
@@ -51,12 +49,12 @@ class TabsNavigation {
         makeAutoObservable(this);
     }
 
-    set tabs(tabsData: TabsData) {
+    set tabs(tabsData: ITabData[]) {
         this.tabsData = tabsData || [];
     }
 
-    get tabs(): TabsData {
-        if(coinsStore.mining_per_second < 100000000n){
+    get tabs(): ITabData[] {
+        if (coinsStore.mining_per_second < 100000000n) {
             return [this.tabsData[0], this.tabsData[1], this.tabsData[2], this.tabsData[3]];
         }
         return this.tabsData;
@@ -64,11 +62,13 @@ class TabsNavigation {
 
     set nowTab(tabId: number) {
         this.nowTabId = tabId;
-        tabsCardsStore?.getTab(tabId);
+        tabsCardsStore.getTab(tabId);
     }
 
-    get nowTab():ITabData {
-        tabsCardsStore.getTab(this.nowTabId);
+    get nowTab(): ITabData {
+        // if(this.nowTabId){
+        //     tabsCardsStore.getTab(this.nowTabId);
+        // }
         let nowTab: ITabData = this.tabsData.find(tab => tab.id === this.nowTabId) || this.tabsData[0];
         return nowTab;
     }

@@ -1,4 +1,5 @@
 const TAP = {
+    appUrl: 'https://msss.ru/tap/',
     apiUrl: 'https://msss.ru/tap/php/api/',
     botUrl: 'https://t.me/Nuzhdin_Coin_bot',
 }

@@ -13,7 +13,7 @@ export interface IBattery {
     multiplier: number;
     period_reload: number;
     remainingLock: boolean;
-    timeRemaining:IComputedValue<number>;
+    timeRemaining: IComputedValue<number>;
 }
 
 export type IBatteries = IBattery[];

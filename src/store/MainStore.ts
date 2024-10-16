@@ -1,18 +1,21 @@
 import { makeAutoObservable, runInAction, autorun, reaction, toJS } from 'mobx';
 import TAP from '@/TAPconfig';
+import {getCookie} from '@/helpers/common';
 import messLogStore from '@/store/MessLogStore';
 import telegramStore from '@/store/TelegramStore';
-import coinsStore, {TapsPackets} from '@/store/CoinsStore';
+import coinsStore, { TapsPackets } from '@/store/CoinsStore';
 import energonStore from '@/store/EnergonStore';
+import tabsNavigation from '@/store/cards/TabsNavigation';
 
-import {IUserData, IAuthData} from '@/types/user';
-import {Timer} from '@/types/timer';
+import { IUserData, IAuthData } from '@/types/user';
+import { Timer } from '@/types/timer';
 
 
 /* Отвечает за данные о пользователе, способе авторизации (на данный момент только телеграмм) и отправке пакотов с тапами.
 тапы прибавляются в coinsStore, а тут отправка происходит пакетами каждые X секунд*/
 class MainStore {
     public authData: IAuthData = {};
+    public authType: string = 'telegram';
     public majorСoefficient: bigint = 10000n;
     public isSubmitting: boolean = false; //предотвращает отправку данных на сервер если по какой то причине предыдущие данные всё ещё отправляются
 
@@ -29,51 +32,64 @@ class MainStore {
 
     private fetchTimer?: Timer;
     private lastFetchDate: number = Date.now();
+    private lastFetchDateDelay: number = 2400; // синхронизация с сервером каждые X секунд 
 
     constructor() {
         makeAutoObservable(this, { authData: false }); //если authData данные с телеграмм то их нельзя мутировать (mobx proxy мутирует данные)
         this.authUser();
     }
 
-    set user(userData: IUserData){
-        if(userData){
+    set user(userData: IUserData) {
+        if (userData) {
             this.userData = userData;
-            if(userData.batteries){
+            if (userData.batteries) {
                 energonStore.batteries = userData.batteries;
             }
             coinsStore.clacNowCoins(userData);
         }
     }
 
-    get user():IUserData{
+    get user(): IUserData {
         return this.userData;
     }
 
-    get tapPrice(): bigint{
-        return coinsStore.tapPrice/this.majorСoefficient;
+    get tapPrice(): bigint {
+        return coinsStore.tapPrice / this.majorСoefficient;
     }
 
-    get tapPriceFinally(): bigint{
-        return coinsStore.tapPriceFinally/this.majorСoefficient;
+    get tapPriceFinally(): bigint {
+        return coinsStore.tapPriceFinally / this.majorСoefficient;
     }
 
-    get miningPerHour(): bigint{
-        return coinsStore.mining_per_second*3600n/this.majorСoefficient;
+    get miningPerHour(): bigint {
+        return coinsStore.mining_per_second * 3600n / this.majorСoefficient;
     }
 
-    get coins(): bigint{
-        return coinsStore.coins/this.majorСoefficient;
+    get coins(): bigint {
+        return coinsStore.coins / this.majorСoefficient;
     }
 
-    private async authUser(){
+    private async authUser() {
         let authData: IAuthData = {};
+        let authType: string = 'telegram';
 
         //загрузить данные с телеграм
-        if(typeof window !== 'undefined' ){
+        if (typeof window !== 'undefined') {
+            authType = 'telegram';
             authData = await telegramStore.setTelegramData();
         }
-        
+
+        //Обычный вход через браузер
+        if (!authData?.initDataUnsafe?.user?.id) {
+            console.log('Обычный вход через браузер, не через Telegram');
+            authType = 'site';
+            authData = {
+                'cookie': getCookie('googol_coin')
+            };
+        }
+
         runInAction(() => {
+            this.authType = authType;
             this.authData = authData;
             this.firstUserDataLoad();
             this.setFetchTimer(setInterval(this.fetchTaps.bind(this), 5000)); //bind на всякий случай
@@ -85,28 +101,29 @@ class MainStore {
         runInAction(() => {
             let packet: TapsPackets = coinsStore.formPacket(); // Формируем пакет
             let totalTaps: number = Object.values(packet).reduce((sum, tapData) => sum + tapData.taps, 0); // Считаем количество тапов
-            //(если есть неотправленные тапы или прошло 240 сек) и предыдущая отправка завершена
-            if ((Object.keys(packet).length > 0 || this.lastFetchDate-Date.now() < 0) && !this.isSubmitting) {
+            //(если есть неотправленные тапы или прошло lastFetchDateDelay секунд) и предыдущая отправка завершена
+            if ((Object.keys(packet).length > 0 || this.lastFetchDate - Date.now() < 0) && !this.isSubmitting) {
                 this.incCoins(packet, totalTaps); // Отправляем пакет на сервер
             }
         });
     }
 
-    //загружаем данные о пользователе как только загружены данные с телеграм
+    //загружаем данные о пользователе как только загружены данные с телеграм или другие данные авторизации
     public async firstUserDataLoad(): Promise<void> {
-        if(!this.userData.id){
+        if (!this.userData.id) {
             await this.fetchUser();
+            tabsNavigation.nowTab = 1;
         }
-        if(!this.userData.id){
+        if (!this.userData.id) {
             messLogStore.setStatus('err', '', 'Ошибка загрузки. Обновите страницу', '');
         }
         messLogStore.setFirstLoad();
     }
 
     //установака нового таймера
-    private setFetchTimer(timer: NodeJS.Timeout | any){
+    private setFetchTimer(timer: NodeJS.Timeout | any) {
         runInAction(() => {
-            if(this.fetchTimer){
+            if (this.fetchTimer) {
                 clearInterval(this.fetchTimer);
             }
             this.fetchTimer = timer;
@@ -121,24 +138,24 @@ class MainStore {
     public async incCoins(TapsPacket: TapsPackets, totalTaps: number) {
         this.isSubmitting = true;
         let apiUrl = TAP.apiUrl + 'inc_coins/';
-        let userData = await this.fetchData({ taps:totalTaps }, apiUrl);
+        let userData = await this.fetchData({ taps: totalTaps }, apiUrl);
 
         runInAction(() => {
-            if(userData && userData.success === true){
+            if (userData && userData.success === true) {
                 coinsStore.confirmPacket(TapsPacket); // Подтверждаем пакет, если отправка успешна
                 this.user = userData.data;
                 energonStore.batteries = userData.batteries;
-            }else{
+            } else {
                 coinsStore.revertPacket(TapsPacket); // Восстанавливаем тапы в случае ошибки
             }
-            mainStore.lastFetchDate = Date.now()+240000;
+            mainStore.lastFetchDate = Date.now() + this.lastFetchDateDelay*1000;
             this.isSubmitting = false;
         });
     }
 
     //отправка чего угодно на сервер с данными для авторизации
-    public async fetchData(data: any, apiUrl: string): Promise<any> { 
-        return await this.fetchAnyData({...data, data: this.authData}, apiUrl);
+    public async fetchData(data: { [key: string]: any }, apiUrl: string): Promise<any> {
+        return await this.fetchAnyData({ ...data, authType: this.authType, authData: this.authData }, apiUrl);
     }
 
     //отправка чего угодно на сервер
@@ -154,7 +171,11 @@ class MainStore {
             let result = await response.text();
             try {
                 let res = JSON.parse(result);
-                messLogStore.setStatus('ok', '', '', apiUrl);
+                if(res.success === false){
+                    messLogStore.setStatus('err', '', res.message, apiUrl);
+                }else{
+                    messLogStore.setStatus('ok', '', '', apiUrl);
+                }
                 return res;
             } catch (error) {
                 messLogStore.setStatus('err', error, 'Ошибка в данных с сервера', apiUrl);

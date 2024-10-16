@@ -45,7 +45,7 @@ class NavigationStore {
                 if (typeof nav[key].active === 'boolean') {
                     nav[key].active = false;
                 } else if (typeof nav[key] === 'undefined') {
-                    this.createSection(key, false); // Изменено с true на false, чтобы не активировать несуществующую секцию
+                    this.createSection(key, false);
                 }
             });
             // Активируем только выбранную секцию
@@ -55,7 +55,7 @@ class NavigationStore {
         });
     }
 
-    // Получить состояние экрана
+    // Получить состояние секции
     getNav(sectionName: string): boolean {
         const nav = this.nav;
         if (typeof nav[sectionName] === 'undefined') {
@@ -65,7 +65,7 @@ class NavigationStore {
     }
 }
 
-// Инициализация секций
+// Инициализация секций (если секция не указана то её инициализация происходит автоматически при вызове setActiveSection)
 const sections: Sections = {
     TapalkaMain: true,
     // CardsMain: false,

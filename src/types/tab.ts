@@ -1,4 +1,4 @@
-import {ICard} from '@/types/card';
+import { ICard } from '@/types/card';
 
 export interface ITab {
     id: number;

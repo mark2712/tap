@@ -1,6 +1,14 @@
 import React from 'react';
 
 
+export function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null; // Если куки с таким именем нет
+}
+
+
 export const scrollToTop = () => {
     window.scrollTo({
         top: 0,

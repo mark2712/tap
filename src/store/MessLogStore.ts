@@ -30,7 +30,7 @@ class MessLogStore {
         });
     }
 
-    setStatus(status: statusTypes, res: any, info: string, url: string) {
+    setStatus(status: statusTypes, res: any, info: string, url: string): void {
         runInAction(() => {
             const newMess: ILogMessage = {
                 status,
@@ -51,7 +51,7 @@ class MessLogStore {
         });
     }
 
-    logClose(lastMess: ILogMessage) {
+    logClose(lastMess: ILogMessage): void {
         runInAction(() => {
             lastMess.display = false;
         });

@@ -1,4 +1,4 @@
-import {IBattery} from '@/types/energon';
+import { IBattery } from '@/types/energon';
 
 export interface IUserData {
     id: number;

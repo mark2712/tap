@@ -1,6 +1,6 @@
 import { makeAutoObservable, computed, runInAction, autorun, reaction, toJS } from 'mobx';
-import {IBattery, IBatteries} from '@/types/energon';
-import {Timer} from '@/types/timer';
+import { IBattery, IBatteries } from '@/types/energon';
+import { Timer } from '@/types/timer';
 
 
 class EnergonStore {
@@ -12,12 +12,12 @@ class EnergonStore {
         makeAutoObservable(this);
     }
 
-    get batteries(){
+    get batteries() {
         return this.batteriesData || [];
     }
 
-    set batteries(batteries){
-        if(typeof batteries === "object"){
+    set batteries(batteries) {
+        if (typeof batteries === "object") {
             runInAction(() => {
                 this.batteriesData = batteries;
                 this.batteriesTimeRemaining();
@@ -36,7 +36,7 @@ class EnergonStore {
 
     // Вычисляем время оставшееся для перезарядки для каждой батареи
     private batteriesTimeRemaining() {
-        for(let key in this.batteriesData){
+        for (let key in this.batteriesData) {
             let battery: IBattery = this.batteriesData[key];
             battery.timeRemaining = this.calcTimeRemaining(battery);
         }
@@ -51,12 +51,12 @@ class EnergonStore {
 
     //восстановление непотраченой батарейки
     private calcActiveRemaining(battery: IBattery) {
-        if(battery.remainingLock){
+        if (battery.remainingLock) {
             return battery.energon; //пока клиент-сервер не синхронизированы восстановление невозможно (так как на сервере ещё ничего не потрачено и не чего восстанавливать)
         }
         let rechargeSpeed = Number(battery.card_max_energon) / (Number(battery.period_reload) * 3);
         let newEnergon = rechargeSpeed + Number(battery.energon);
-        if(newEnergon > battery.card_max_energon){
+        if (newEnergon > battery.card_max_energon) {
             return battery.card_max_energon;
         }
         return newEnergon;
@@ -67,7 +67,7 @@ class EnergonStore {
             this.timer = setInterval(() => {
                 runInAction(() => {
                     this.currentTime = Math.floor(Date.now() / 1000);
-                    for(let key in this.batteriesData){
+                    for (let key in this.batteriesData) {
                         let battery = this.batteriesData[key];
                         battery.energon = this.calcActiveRemaining(battery)
                     }
@@ -95,7 +95,7 @@ class EnergonStore {
                 }
 
                 //если батарейка полная то она не заряжается пока её заряд полный на сервере
-                if(battery.energon == battery.card_max_energon){
+                if (battery.energon == battery.card_max_energon) {
                     battery.remainingLock = true;
                 }
 

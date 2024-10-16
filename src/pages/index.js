@@ -7,6 +7,7 @@ const MessLog = dynamic(() => import('@/components/MessLog/'), { ssr: false });
 const TapalkaMain = dynamic(() => import('@/components/tapalka/TapalkaMain'), { ssr: false });
 const CardsMain = dynamic(() => import('@/components/cards/CardsMain'), { ssr: false });
 const Referal = dynamic(() => import('@/components/referal/Referal'), { ssr: false });
+const Profile = dynamic(() => import('@/components/profile/Profile'), { ssr: false });
 const MenuTop = dynamic(() => import('@/components/menu/MenuTop'), { ssr: false });
 const TopStats = dynamic(() => import('@/components/menu/TopStats'), { ssr: false });
 const MenuBottom = dynamic(() => import('@/components/menu/MenuBottom'), { ssr: false });
@@ -33,6 +34,7 @@ export default function IndexPage() {
             <TapalkaMain></TapalkaMain>
             <CardsMain></CardsMain>
             <Referal></Referal>
+            <Profile></Profile>
             <MenuBottom></MenuBottom>
             {/* <SysInfo></SysInfo> */}
         </>

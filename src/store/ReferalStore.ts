@@ -2,12 +2,12 @@ import { makeAutoObservable, runInAction, autorun, reaction, toJS } from 'mobx';
 import TAP from '@/TAPconfig';
 import mainStore from "@/store/MainStore";
 
-import {IReferal} from '@/types/referal';
+import { IReferal } from '@/types/referal';
 
 
 class ReferalStore {
     referals: IReferal[] = [];
-    
+
     constructor() {
         makeAutoObservable(this);
     }

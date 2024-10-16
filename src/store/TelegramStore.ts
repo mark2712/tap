@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction, autorun, reaction, toJS } from 'mobx';
 import commonData from '@/commonData/data';
 
-import {IAuthData} from '@/types/user';
+import { IAuthData } from '@/types/user';
 
 declare global {
     interface Window {

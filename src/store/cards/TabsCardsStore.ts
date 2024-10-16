@@ -3,7 +3,7 @@ import TAP from '@/TAPconfig';
 import mainStore from "@/store/MainStore";
 import Card from "@/store/cards/Card";
 
-import {ITab, ITabs} from '@/types/tab';
+import { ITab, ITabs } from '@/types/tab';
 
 
 export interface IPacketBuyCards {
@@ -29,13 +29,13 @@ class TabsCardsStore {
     }
 
     public async getTab(tab_id: number): Promise<void> {
-        if(!this.tabs[tab_id] || this.tabs[tab_id]?.update){
+        if (!this.tabs[tab_id] || this.tabs[tab_id]?.update) {
             this.getTabFetch(tab_id);
         }
     }
 
     public async getTabFetch(tab_id: number): Promise<void> {
-        let tab = await mainStore.fetchData({tab_id}, TAP.apiUrl + 'get_cards/');
+        let tab = await mainStore.fetchData({ tab_id }, TAP.apiUrl + 'get_cards/');
         this.setTab(tab);
     }
 
@@ -90,9 +90,9 @@ class TabsCardsStore {
 
         let res = await mainStore.fetchData(data, TAP.apiUrl + 'buy_cards/');
         runInAction(() => {
-            if(res){
+            if (res) {
                 this.buyCardResult(res.cards);
-                if(res.data){
+                if (res.data) {
                     mainStore.user = res.data;
                 }
             }
@@ -114,7 +114,7 @@ class TabsCardsStore {
     private buyCardResult(tab: ITab): void {
         runInAction(() => {
             let tabs = this.tabs;
-            for(let key in tabs){
+            for (let key in tabs) {
                 tabs[key].update = true;
             }
             this.setTab(tab);
